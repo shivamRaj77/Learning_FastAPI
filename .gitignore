@@ -1,0 +1,22 @@
+# VS Code settings
+.vscode/
+
+# Python junk
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+*.db
+*.sqlite3
+
+# Environments
+.env
+venv/
+env/
+
+# System junk
+.DS_Store
+*.log
+
+# Node/npm junk (if applicable)
+node_modules/
