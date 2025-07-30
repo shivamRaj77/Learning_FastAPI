@@ -1,6 +1,7 @@
-from fastapi import FastAPI
+from fastapi import FastAPI, Path, Query, HTTPException
 from pydantic import BaseModel, Field
 from typing import Optional
+from starlette import status
 
 app = FastAPI()
 
@@ -59,18 +60,19 @@ def find_book_id(book: Book):
     book.id = 1 if len(BOOKS)==0 else BOOKS[-1].id + 1
     return book
 
-@app.get("/books")
+@app.get("/books", status_code=status.HTTP_200_OK)
 async def read_all_books():
     return BOOKS
 
-@app.get("/books/{book_id}")    # path parameter
-async def read_book(book_id: int):
+@app.get("/books/{book_id}", status_code=status.HTTP_200_OK)    # path parameter
+async def read_book(book_id: int = Path(gt=0)):
     for book in BOOKS:
         if book.id==book_id:
             return book
+    raise HTTPException(status_code=404, detail="BOOK NOT FOUND!")
         
-@app.get("/books/")     # query parameter
-async def read_by_rating(book_rating: int):
+@app.get("/books/", status_code=status.HTTP_200_OK)     # query parameter
+async def read_by_rating(book_rating: int = Query(gt=-1, lt=6)):
     books_to_return = []
     for book in BOOKS:
         if book.rating==book_rating:
@@ -78,8 +80,8 @@ async def read_by_rating(book_rating: int):
     return books_to_return
 
 # ASSIGNMENT
-@app.get("/books/publish/")
-async def read_by_published(published: int):
+@app.get("/books/publish/", status_code=status.HTTP_200_OK)
+async def read_by_published(published: int = Query(gt=1500, lt=2026)):
     books_to_return  = []
     for book in BOOKS:
         if book.published==published:
@@ -87,7 +89,7 @@ async def read_by_published(published: int):
     return books_to_return
 
 # post request before validation
-@app.post("/create_book")
+@app.post("/create_book", status_code=status.HTTP_201_CREATED)
 # Body doesn't allow any kind of validation on the data
 # async def create_book(book_request=Body()):
 #     BOOKS.append(book_request)
@@ -95,17 +97,25 @@ async def create_book(book_request: BookRequest):
     new_book = Book(**book_request.model_dump())
     BOOKS.append(find_book_id(new_book))
 
-@app.put("/books/update_book")
+@app.put("/books/update_book", status_code=status.HTTP_204_NO_CONTENT)
 async def update_book(updated_book: BookRequest):
+    book_changed = False
     for i in range(len(BOOKS)):
         if BOOKS[i].title.casefold()==updated_book.title.casefold():
             if updated_book.id==None:
                 updated_book.id = BOOKS[i].id
             BOOKS[i] = Book(**updated_book.model_dump())
+            book_changed = True
+    if not book_changed:
+        raise HTTPException(status_code=404, detail="BOOK NOT FOUND!")
 
-@app.delete("/books/{book_id}")
-async def delete_book(book_id: int):
+@app.delete("/books/{book_id}", status_code=status.HTTP_204_NO_CONTENT)
+async def delete_book(book_id: int = Path(gt=0)):
+    book_changed = False
     for i in range(len(BOOKS)):
         if BOOKS[i].id==book_id:
             BOOKS.pop(i)
+            book_changed = True
             break
+    if not book_changed:
+        raise HTTPException(status_code=404, detail="BOOK NOT FOUND!")
