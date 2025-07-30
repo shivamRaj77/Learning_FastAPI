@@ -10,13 +10,15 @@ class Book:
     author: str
     description: str
     rating: int
+    published: int
 
-    def __init__(self, id, title, author, description, rating):
+    def __init__(self, id, title, author, description, rating, published):
         self.id = id
         self.title = title
         self.author = author
         self.description = description
         self.rating = rating
+        self.published = published
 
 # Pydantic Model
 class BookRequest(BaseModel):
@@ -25,6 +27,7 @@ class BookRequest(BaseModel):
     author: str = Field(min_length=1)
     description: str = Field(min_length=1, max_length=100)
     rating: int = Field(gt=-1, lt=6)
+    published: int = Field(gt=1500, lt=2026)
 
     model_config = {
         "json_schema_extra": {
@@ -32,23 +35,24 @@ class BookRequest(BaseModel):
                 "title": "New Book",
                 "author": "John Doe",
                 "description": "Describe the Book", 
-                "rating": 5
+                "rating": 5,
+                "published": 2000
             }
         }
     }
     
 
 BOOKS = [
-    Book(1, "1984", "George Orwell", "Dystopian novel about totalitarianism", 5),
-    Book(2, "To Kill a Mockingbird", "Harper Lee", "Classic novel on racial injustice", 5),
-    Book(3, "The Great Gatsby", "F. Scott Fitzgerald", "Jazz Age story of love and loss", 4),
-    Book(4, "Pride and Prejudice", "Jane Austen", "Romantic drama in the British countryside", 5),
-    Book(5, "The Catcher in the Rye", "J.D. Salinger", "Rebellious teen's journey in NYC", 4),
-    Book(6, "The Hobbit", "J.R.R. Tolkien", "Fantasy adventure of Bilbo Baggins", 5),
-    Book(7, "Frankenstein", "Mary Shelley", "Gothic novel about creation and responsibility", 4),
-    Book(8, "The Alchemist", "Paulo Coelho", "Spiritual journey to follow one's dreams", 4),
-    Book(9, "Jane Eyre", "Charlotte Brontë", "Orphaned girl's rise through adversity", 5),
-    Book(10, "The Book Thief", "Markus Zusak", "Story of a girl in Nazi Germany narrated by Death", 5)
+    Book(1, "The Silent Patient", "Alex Michaelides", "A thrilling tale of mystery.", 5, 2019),
+    Book(2, "The Maidens", "Alex Michaelides", "Dark academia meets murder mystery.", 4, 2021),
+    Book(3, "Atomic Habits", "James Clear", "Self-improvement strategies that work.", 5, 2018),
+    Book(4, "Deep Work", "Cal Newport", "Maximize focus and productivity.", 4, 2016),
+    Book(5, "Digital Minimalism", "Cal Newport", "Tech detox for the modern age.", 4, 2019),
+    Book(6, "1984", "George Orwell", "Dystopian future that feels too real.", 5, 1949),
+    Book(7, "Animal Farm", "George Orwell", "A clever satire on power and politics.", 5, 1945),
+    Book(8, "The Midnight Library", "Matt Haig", "What if you could live other lives?", 4, 2020),
+    Book(9, "Outliers", "Malcolm Gladwell", "The story of success beyond talent.", 4, 2008),
+    Book(10, "Blink", "Malcolm Gladwell", "Thinking without thinking.", 4, 2005)
 ]
 
 def find_book_id(book: Book):
@@ -70,6 +74,15 @@ async def read_by_rating(book_rating: int):
     books_to_return = []
     for book in BOOKS:
         if book.rating==book_rating:
+            books_to_return.append(book)
+    return books_to_return
+
+# ASSIGNMENT
+@app.get("/books/publish/")
+async def read_by_published(published: int):
+    books_to_return  = []
+    for book in BOOKS:
+        if book.published==published:
             books_to_return.append(book)
     return books_to_return
 
