@@ -99,6 +99,8 @@ async def create_book(book_request: BookRequest):
 async def update_book(updated_book: BookRequest):
     for i in range(len(BOOKS)):
         if BOOKS[i].title.casefold()==updated_book.title.casefold():
+            if updated_book.id==None:
+                updated_book.id = BOOKS[i].id
             BOOKS[i] = Book(**updated_book.model_dump())
 
 @app.delete("/books/{book_id}")
