@@ -25,6 +25,17 @@ class BookRequest(BaseModel):
     author: str = Field(min_length=1)
     description: str = Field(min_length=1, max_length=100)
     rating: int = Field(gt=-1, lt=6)
+
+    model_config = {
+        "json_schema_extra": {
+            "example": {
+                "title": "New Book",
+                "author": "John Doe",
+                "description": "Describe the Book", 
+                "rating": 5
+            }
+        }
+    }
     
 
 BOOKS = [
@@ -53,7 +64,6 @@ async def read_all_books():
 # Body doesn't allow any kind of validation on the data
 # async def create_book(book_request=Body()):
 #     BOOKS.append(book_request)
-
 async def create_book(book_request: BookRequest):
     new_book = Book(**book_request.model_dump())
     BOOKS.append(find_book_id(new_book))
